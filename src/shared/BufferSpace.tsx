@@ -1,0 +1,1 @@
+export const BufferSpace = 25;
