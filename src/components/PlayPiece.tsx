@@ -1,5 +1,6 @@
 import React, { CSSProperties, useContext, useEffect, useRef } from 'react';
 import { PushContext } from '../context/PushContext';
+import { Coordinates } from '../models/Coordinates';
 import { BorderRadius } from '../SharedConstants';
 
 export interface Props {
@@ -7,9 +8,9 @@ export interface Props {
   edgeLength: number;
   translateX: number;
   translateY: number;
-  coordinates: { x: number; y: number };
-  emptyCoordinates: { x: number; y: number };
-  onCoordinatesChange: (newCoordinates: { x: number; y: number }, replacesEmpty: boolean) => any;
+  coordinates: Coordinates;
+  emptyCoordinates: Coordinates;
+  onCoordinatesChange: (newCoordinates: Coordinates, replacesEmpty: boolean) => any;
 }
 
 const borderWidth = 5;
@@ -105,7 +106,7 @@ export const PlayPiece: React.FC<Props> = ({
         }, { once: true });
       };
 
-      subscribers[id] = (event: MouseEvent, { x, y }: { x: number, y: number }) => {
+      subscribers[id] = (event: MouseEvent, { x, y }: Coordinates) => {
         if (!(coordinates.x === x && coordinates.y === y)) {
           const shareYAxisWithPusher = x === coordinates.x;
           const shareXAxisWithPusher = y === coordinates.y;
