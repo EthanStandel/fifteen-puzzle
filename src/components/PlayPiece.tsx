@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect, useRef, useState } from 'react';
+import React, { CSSProperties, useEffect, useRef } from 'react';
 import { BorderRadius } from '../SharedConstants';
 
 export interface Props {
