@@ -6,10 +6,9 @@ export interface Props {
   edgeLength: number;
   translateX: number;
   translateY: number;
-  draggableXPos?: boolean;
-  draggableXNeg?: boolean;
-  draggableYPos?: boolean;
-  draggableYNeg?: boolean;
+  coordinates: { x: number; y: number };
+  emptyCoordinates: { x: number; y: number };
+  onCoordinatesChange: () => any;
 }
 
 const borderWidth = 5;
@@ -23,18 +22,21 @@ export const PlayPiece: React.FC<Props> = ({
   edgeLength,
   translateX,
   translateY,
-  draggableXPos = true,
-  draggableXNeg = true,
-  draggableYPos = true,
-  draggableYNeg = true
+  coordinates,
+  emptyCoordinates,
+  onCoordinatesChange
 }) => {
-  const [ translateXMod, setTranslateXMod ] = useState(0);
-  const [ translateYMod, setTranslateYMod ] = useState(0);
+  const shareYAxis = coordinates.y === emptyCoordinates.y;
+  const shareXAxis = coordinates.x === emptyCoordinates.x;
+  const draggableXPos = coordinates.x + 1 === emptyCoordinates.x && shareYAxis;
+  const draggableXNeg = coordinates.x - 1 === emptyCoordinates.x && shareYAxis;
+  const draggableYPos = coordinates.y + 1 === emptyCoordinates.y && shareXAxis;
+  const draggableYNeg = coordinates.y - 1 === emptyCoordinates.y && shareXAxis;
 
   const pieceStyle: CSSProperties = {
     position: "absolute",
     border: `solid ${borderWidth}px silver`,
-    transform: `translate(${translateX + translateXMod * edgeLength}px, ${translateY + translateYMod * edgeLength}px)`,
+    transform: `translate(${translateX}px, ${translateY}px)`,
     height: edgeLength - (borderWidth * 2),
     width: edgeLength - (borderWidth * 2),
     backgroundColor: id % 2 === 0 ? "beige" : "firebrick",
@@ -80,15 +82,11 @@ export const PlayPiece: React.FC<Props> = ({
           const offsetX = mouseUpEvent.clientX - mouseDownEvent.clientX;
           const offsetY = mouseUpEvent.clientY - mouseDownEvent.clientY;
           if ((draggableXPos && offsetX > 0) || (draggableXNeg && offsetX < 0))  {
-            const stepsTaken = Math.round(offsetX / edgeLength);
-            const newXMod = stepsTaken === 0 ? 0 : stepsTaken <= -1 ? -1 : 1;
-            setTranslateXMod(newXMod + translateXMod);
+            onCoordinatesChange();
           }
 
           if ((draggableYPos && offsetY > 0) || (draggableYNeg && offsetY < 0)) {
-            const stepsTaken = Math.round(offsetY / edgeLength);
-            const newYMod = stepsTaken >= 1 ? 1 : stepsTaken <= -1 ? -1 : 0;
-            setTranslateYMod(newYMod + translateYMod);
+            onCoordinatesChange();
           }
           // Cleanup
           pieceEl.style.transition = "transform .2s, left .2s, top .2s";
