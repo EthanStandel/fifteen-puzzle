@@ -8,14 +8,14 @@ export interface Props {
   translateY: number;
   coordinates: { x: number; y: number };
   emptyCoordinates: { x: number; y: number };
-  onCoordinatesChange: () => any;
+  onCoordinatesChange: (newCoordinates: { x: number; y: number }) => any;
 }
 
 const borderWidth = 5;
 
 /**
- * Really just the simple display logic for a play piece.
- * All the movement and game state is handled by the PlaceSpace component.
+ * The dragable entity which has a global understanding of
+ * the game state in respect to it's own.
  */
 export const PlayPiece: React.FC<Props> = ({
   id,
@@ -82,11 +82,13 @@ export const PlayPiece: React.FC<Props> = ({
           const offsetX = mouseUpEvent.clientX - mouseDownEvent.clientX;
           const offsetY = mouseUpEvent.clientY - mouseDownEvent.clientY;
           if ((draggableXPos && offsetX > 0) || (draggableXNeg && offsetX < 0))  {
-            onCoordinatesChange();
+            const change = offsetX > 0 ? 1 : -1;
+            onCoordinatesChange({ x: coordinates.x + change, y: coordinates.y });
           }
 
           if ((draggableYPos && offsetY > 0) || (draggableYNeg && offsetY < 0)) {
-            onCoordinatesChange();
+            const change = offsetY > 0 ? 1 : -1;
+            onCoordinatesChange({ x: coordinates.x, y: coordinates.y + change });
           }
           // Cleanup
           pieceEl.style.transition = "transform .2s, left .2s, top .2s";

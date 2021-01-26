@@ -36,11 +36,13 @@ export const PlaySpace: React.FC<Props> = ({ edgeLength }) => {
                    translateY={y * playPieceEdgeLength}
                    coordinates={{ x, y }}
                    emptyCoordinates={emptyCoordinates}
-                   onCoordinatesChange={() => {
-                     setEmptyCoordinates({ x, y });
-                     pieces[index].x = emptyCoordinates.x;
-                     pieces[index].y = emptyCoordinates.y;
-                     setPieces([...pieces]);
+                   onCoordinatesChange={({ x: newX, y: newY }) => {
+                      if (newX === emptyCoordinates.x && newY === emptyCoordinates.y) {
+                        setEmptyCoordinates({ x, y });
+                      }
+                      pieces[index].x = newX;
+                      pieces[index].y = newY;
+                      setPieces([...pieces]);
                    }}
                    id={id}
                    key={id} />
