@@ -1,4 +1,5 @@
-import React, { CSSProperties, useEffect, useRef } from 'react';
+import React, { CSSProperties, useContext, useEffect, useRef } from 'react';
+import { PushContext } from '../context/PushContext';
 import { BorderRadius } from '../SharedConstants';
 
 export interface Props {
@@ -8,7 +9,7 @@ export interface Props {
   translateY: number;
   coordinates: { x: number; y: number };
   emptyCoordinates: { x: number; y: number };
-  onCoordinatesChange: (newCoordinates: { x: number; y: number }) => any;
+  onCoordinatesChange: (newCoordinates: { x: number; y: number }, replacesEmpty: boolean) => any;
 }
 
 const borderWidth = 5;
@@ -26,12 +27,14 @@ export const PlayPiece: React.FC<Props> = ({
   emptyCoordinates,
   onCoordinatesChange
 }) => {
-  const shareYAxis = coordinates.y === emptyCoordinates.y;
-  const shareXAxis = coordinates.x === emptyCoordinates.x;
-  const draggableXPos = coordinates.x + 1 === emptyCoordinates.x && shareYAxis;
-  const draggableXNeg = coordinates.x - 1 === emptyCoordinates.x && shareYAxis;
-  const draggableYPos = coordinates.y + 1 === emptyCoordinates.y && shareXAxis;
-  const draggableYNeg = coordinates.y - 1 === emptyCoordinates.y && shareXAxis;
+  const { onPush, subscribers } = useContext(PushContext);
+
+  const shareXAxis = coordinates.y === emptyCoordinates.y;
+  const shareYAxis = coordinates.x === emptyCoordinates.x;
+  const draggableXPos = coordinates.x < emptyCoordinates.x && shareXAxis;
+  const draggableXNeg = coordinates.x > emptyCoordinates.x && shareXAxis;
+  const draggableYPos = coordinates.y < emptyCoordinates.y && shareYAxis;
+  const draggableYNeg = coordinates.y > emptyCoordinates.y && shareYAxis;
 
   const pieceStyle: CSSProperties = {
     position: "absolute",
@@ -57,7 +60,11 @@ export const PlayPiece: React.FC<Props> = ({
   useEffect(() => {
     const pieceEl: HTMLDivElement | null = piece.current;
     if (pieceEl !== null) {
-      pieceEl.onmousedown = (mouseDownEvent: MouseEvent) => {
+      const onMouseDown = pieceEl.onmousedown = (mouseDownEvent: MouseEvent) => {
+        const theMainEvent = mouseDownEvent.currentTarget === pieceEl;
+        if (theMainEvent) {
+          onPush(mouseDownEvent, coordinates);
+        }
         const onMouseMove = (mouseMoveEvent: MouseEvent) => {
 
           const offsetX = mouseMoveEvent.clientX - mouseDownEvent.clientX;
@@ -83,12 +90,12 @@ export const PlayPiece: React.FC<Props> = ({
           const offsetY = mouseUpEvent.clientY - mouseDownEvent.clientY;
           if ((draggableXPos && offsetX > 0) || (draggableXNeg && offsetX < 0))  {
             const change = offsetX > 0 ? 1 : -1;
-            onCoordinatesChange({ x: coordinates.x + change, y: coordinates.y });
+            onCoordinatesChange({ x: coordinates.x + change, y: coordinates.y }, theMainEvent);
           }
 
           if ((draggableYPos && offsetY > 0) || (draggableYNeg && offsetY < 0)) {
             const change = offsetY > 0 ? 1 : -1;
-            onCoordinatesChange({ x: coordinates.x, y: coordinates.y + change });
+            onCoordinatesChange({ x: coordinates.x, y: coordinates.y + change }, theMainEvent);
           }
           // Cleanup
           pieceEl.style.transition = "transform .2s, left .2s, top .2s";
@@ -96,6 +103,21 @@ export const PlayPiece: React.FC<Props> = ({
           pieceEl.style.top = "0";
           pieceEl.style.left = "0";
         }, { once: true });
+      };
+
+      subscribers[id] = (event: MouseEvent, { x, y }: { x: number, y: number }) => {
+        if (!(coordinates.x === x && coordinates.y === y)) {
+          const shareYAxisWithPusher = x === coordinates.x;
+          const shareXAxisWithPusher = y === coordinates.y;
+          if (
+               (shareYAxisWithPusher && shareYAxis && (emptyCoordinates.y > coordinates.y && y < coordinates.y))
+            || (shareYAxisWithPusher && shareYAxis && (emptyCoordinates.y < coordinates.y && y > coordinates.y))
+            || (shareXAxisWithPusher && shareXAxis && (emptyCoordinates.x > coordinates.x && x < coordinates.x))
+            || (shareXAxisWithPusher && shareXAxis && (emptyCoordinates.x < coordinates.x && x > coordinates.x))
+          ) {
+            onMouseDown(event);
+          }
+        }
       }
     }
   });

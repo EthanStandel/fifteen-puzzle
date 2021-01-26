@@ -9,7 +9,6 @@ export interface Props {
 export const PlaySpace: React.FC<Props> = ({ edgeLength }) => {
   const playPieceEdgeLength = edgeLength / 4;
 
-
   const [ pieces, setPieces ] = useState(
     Array.from({ length: 15 })
       .map((_val, index) => index + 1)
@@ -30,23 +29,23 @@ export const PlaySpace: React.FC<Props> = ({ edgeLength }) => {
         backgroundColor: "aliceblue",
         borderRadius: BorderRadius
     }}>
-      {pieces.map(({ id, x, y }, index) => {
-        return <PlayPiece edgeLength={playPieceEdgeLength} 
-                   translateX={x * playPieceEdgeLength}
-                   translateY={y * playPieceEdgeLength}
-                   coordinates={{ x, y }}
-                   emptyCoordinates={emptyCoordinates}
-                   onCoordinatesChange={({ x: newX, y: newY }) => {
-                      if (newX === emptyCoordinates.x && newY === emptyCoordinates.y) {
-                        setEmptyCoordinates({ x, y });
-                      }
-                      pieces[index].x = newX;
-                      pieces[index].y = newY;
-                      setPieces([...pieces]);
-                   }}
-                   id={id}
-                   key={id} />
-      })}
+      {pieces.map(({ id, x, y }, index) => <PlayPiece 
+        edgeLength={playPieceEdgeLength} 
+        translateX={x * playPieceEdgeLength}
+        translateY={y * playPieceEdgeLength}
+        coordinates={{ x, y }}
+        emptyCoordinates={emptyCoordinates}
+        onCoordinatesChange={({ x: newX, y: newY }, replacesEmpty) => {
+          if (replacesEmpty) {
+            setEmptyCoordinates({ x, y });
+          }
+          pieces[index].x = newX;
+          pieces[index].y = newY;
+          setPieces([...pieces]);
+        }}
+        id={id}
+        key={id} />
+      )}
     </div>
   );
 }

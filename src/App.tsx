@@ -1,8 +1,11 @@
 import React from 'react';
 import { GameBoard } from './components/GameBoard';
+import { PushContextComponent } from './context/PushContext';
 
 const App: React.FC = () => {
-  return <GameBoard rootedElement={document.documentElement}  />;
+  return <PushContextComponent>
+    <GameBoard rootedElement={document.documentElement}  />;
+  </PushContextComponent>;
 }
 
 export default App;
