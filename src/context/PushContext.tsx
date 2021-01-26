@@ -5,12 +5,12 @@ import { Coordinates } from "../models/Coordinates";
 
 export const PushContext = React.createContext<{
     subscribers: Array<(event: MouseEvent, coordinates: Coordinates) => any | undefined>;
-    onPush: (event: MouseEvent, coordinates: Coordinates) => any
+    onPush: (event: MouseEvent | TouchEvent, coordinates: Coordinates) => any
 }>({ subscribers: [], onPush: () => undefined });
 
 export const PushContextComponent: React.FC = (props) => {
-    const subscribers: Array<(event: MouseEvent, coordinates: Coordinates) => any | undefined> = [];
-    const onPush = (event: MouseEvent, coordinates: Coordinates) => {
+    const subscribers: Array<(event: MouseEvent | TouchEvent, coordinates: Coordinates) => any | undefined> = [];
+    const onPush = (event: MouseEvent | TouchEvent, coordinates: Coordinates) => {
         subscribers.forEach(subscriber => subscriber?.(event, coordinates));
     }
 

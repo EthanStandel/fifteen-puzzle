@@ -13,6 +13,28 @@ export interface Props {
   onCoordinatesChange: (newCoordinates: Coordinates, replacesEmpty: boolean) => any;
 }
 
+const getClientX = (event: MouseEvent | TouchEvent): number => {
+  if (event instanceof MouseEvent) {
+    return event.clientX;
+  } else {
+    if (event.type === "touchend") {
+      return event.changedTouches[0].clientX;
+    }
+    return event.touches[0].clientX;
+  }
+}
+
+const getClientY = (event: MouseEvent | TouchEvent): number => {
+  if (event instanceof MouseEvent) {
+    return event.clientY;
+  } else {
+    if (event.type === "touchend") {
+      return event.changedTouches[0].clientY;
+    }
+    return event.touches[0].clientY;
+  }
+}
+
 const borderWidth = 5;
 
 /**
@@ -61,15 +83,15 @@ export const PlayPiece: React.FC<Props> = ({
   useEffect(() => {
     const pieceEl: HTMLDivElement | null = piece.current;
     if (pieceEl !== null) {
-      const onMouseDown = pieceEl.onmousedown = (mouseDownEvent: MouseEvent) => {
+      const onMouseDown = pieceEl.onmousedown = (mouseDownEvent: MouseEvent | TouchEvent) => {
         const theMainEvent = mouseDownEvent.currentTarget === pieceEl;
         if (theMainEvent) {
           onPush(mouseDownEvent, coordinates);
         }
-        const onMouseMove = (mouseMoveEvent: MouseEvent) => {
+        const onMouseMove = (mouseMoveEvent: MouseEvent | TouchEvent) => {
 
-          const offsetX = mouseMoveEvent.clientX - mouseDownEvent.clientX;
-          const offsetY = mouseMoveEvent.clientY - mouseDownEvent.clientY;
+          const offsetX = getClientX(mouseMoveEvent) - getClientX(mouseDownEvent);
+          const offsetY = getClientY(mouseMoveEvent) - getClientY(mouseDownEvent);
           if (
             ((draggableXPos && offsetX > 0) || (draggableXNeg && offsetX < 0)) 
             && Math.abs(offsetX) <= edgeLength
@@ -84,11 +106,13 @@ export const PlayPiece: React.FC<Props> = ({
             pieceEl.style.top = `${offsetY}px` 
           }
         }
-        document.addEventListener("mousemove", onMouseMove);
-        document.addEventListener("mouseup", mouseUpEvent => {
+        const onTouchMove = function(this: Document, event: TouchEvent) { onMouseMove(event); }
+
+        const onMouseUp = (mouseUpEvent: MouseEvent | TouchEvent) => {
           document.removeEventListener("mousemove", onMouseMove);
-          const offsetX = mouseUpEvent.clientX - mouseDownEvent.clientX;
-          const offsetY = mouseUpEvent.clientY - mouseDownEvent.clientY;
+          document.removeEventListener("touchmove", onTouchMove);
+          const offsetX = getClientX(mouseUpEvent) - getClientX(mouseDownEvent);
+          const offsetY = getClientY(mouseUpEvent) - getClientY(mouseDownEvent);
           if ((draggableXPos && offsetX > 0) || (draggableXNeg && offsetX < 0))  {
             const change = offsetX > 0 ? 1 : -1;
             onCoordinatesChange({ x: coordinates.x + change, y: coordinates.y }, theMainEvent);
@@ -103,8 +127,16 @@ export const PlayPiece: React.FC<Props> = ({
           setTimeout(() => pieceEl.style.transition = "transform .2s", 500);
           pieceEl.style.top = "0";
           pieceEl.style.left = "0";
-        }, { once: true });
+        }
+        document.addEventListener("mousemove", onMouseMove);
+        document.addEventListener("touchmove", onTouchMove);
+        document.addEventListener("mouseup", onMouseUp, { once: true });
+        document.addEventListener("touchend", event => onMouseUp(event), { once: true });
       };
+
+      pieceEl.ontouchstart = function(this: GlobalEventHandlers, event: TouchEvent): void {
+        onMouseDown(event);
+      }
 
       subscribers[id] = (event: MouseEvent, { x, y }: Coordinates) => {
         if (!(coordinates.x === x && coordinates.y === y)) {
