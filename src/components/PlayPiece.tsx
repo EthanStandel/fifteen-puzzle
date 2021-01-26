@@ -49,11 +49,9 @@ export const PlayPiece: React.FC<Props> = ({
   const piece = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log("useEffect");
     const pieceEl: HTMLDivElement | null = piece.current;
     if (pieceEl !== null) {
       const onMouseDown = (mouseDownEvent: MouseEvent) => {
-        console.log("onMouseDown");
         const onMouseMove = (mouseMoveEvent: MouseEvent) => {
 
           const offsetX = mouseMoveEvent.clientX - mouseDownEvent.clientX;

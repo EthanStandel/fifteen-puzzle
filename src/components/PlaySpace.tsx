@@ -23,13 +23,13 @@ export const PlaySpace: React.FC<Props> = ({ edgeLength }) => {
         backgroundColor: "aliceblue",
         borderRadius: BorderRadius
     }}>
-      {gameState.map((id, index) => {
-        return <PlayPiece edgeLength={playPieceEdgeLength} 
+      {gameState.map((id, index) =>
+        <PlayPiece edgeLength={playPieceEdgeLength} 
                    translateX={(index % 4) * playPieceEdgeLength}
                    translateY={Math.floor(index / 4) * playPieceEdgeLength}
                    id={id} 
                    key={id} />
-      })}
+      )}
     </div>
   );
 }
