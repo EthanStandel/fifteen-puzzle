@@ -1,5 +1,5 @@
 import React, { useState, CSSProperties } from 'react';
-import { BufferSpace } from '../shared/BufferSpace';
+import { BorderRadius, BorderWidth } from '../SharedConstants';
 import { PlaySpace } from './PlaySpace';
 
 export interface Props {
@@ -13,7 +13,7 @@ export interface Props {
 export const GameBoard: React.FC<Props> = ({ rootedElement }) => {
   const appHeight = rootedElement.clientHeight;
   const appWidth = rootedElement.clientWidth;
-  const largestSquareSide = Math.min(appHeight, appWidth) - BufferSpace * 2;
+  const largestSquareSide = Math.min(appHeight, appWidth) - BorderWidth * 2;
 
   const gameBoardStyles: CSSProperties = {
     // Define board dimensions, based on current window size
@@ -21,22 +21,22 @@ export const GameBoard: React.FC<Props> = ({ rootedElement }) => {
     height: largestSquareSide,
     width: largestSquareSide,
     backgroundColor: "silver",
-    borderRadius: BufferSpace,
+    borderRadius: BorderRadius,
     // Center the board in the window
     top: appHeight > appWidth ?
-      (rootedElement.clientHeight - largestSquareSide) / 2 : BufferSpace,
+      (rootedElement.clientHeight - largestSquareSide) / 2 : BorderWidth,
     left: appHeight <= appWidth ?
-      (rootedElement.clientWidth - largestSquareSide) / 2 : BufferSpace
+      (rootedElement.clientWidth - largestSquareSide) / 2 : BorderWidth
   }
 
-  const playSpaceEdgeLength = largestSquareSide - BufferSpace * 2;
+  const playSpaceEdgeLength = largestSquareSide - BorderWidth * 2;
 
   const playSpaceContainerStyles: CSSProperties = {
     position: "absolute",
     width: playSpaceEdgeLength,
     height: playSpaceEdgeLength,
-    top: BufferSpace,
-    left: BufferSpace
+    top: BorderWidth,
+    left: BorderWidth
   }
 
   // Update the board size when the window resizes

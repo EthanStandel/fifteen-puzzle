@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BufferSpace } from '../shared/BufferSpace';
+import { BorderRadius } from '../SharedConstants';
 import { PlayPiece } from './PlayPiece';
 
 export interface Props {
@@ -21,7 +21,7 @@ export const PlaySpace: React.FC<Props> = ({ edgeLength }) => {
         height: "100%",
         width: "100%",
         backgroundColor: "aliceblue",
-        borderRadius: BufferSpace
+        borderRadius: BorderRadius
     }}>
       {gameState.map((id, index) => {
         return <PlayPiece edgeLength={playPieceEdgeLength} 
