@@ -6,8 +6,10 @@ export interface Props {
   edgeLength: number;
   translateX: number;
   translateY: number;
-  draggableX?: boolean;
-  draggableY?: boolean;
+  draggableXPos?: boolean;
+  draggableXNeg?: boolean;
+  draggableYPos?: boolean;
+  draggableYNeg?: boolean;
 }
 
 const borderWidth = 5;
@@ -21,8 +23,10 @@ export const PlayPiece: React.FC<Props> = ({
   edgeLength,
   translateX,
   translateY,
-  draggableX = true,
-  draggableY = true
+  draggableXPos = true,
+  draggableXNeg = true,
+  draggableYPos = true,
+  draggableYNeg = true
 }) => {
   const [ translateXMod, setTranslateXMod ] = useState(0);
   const [ translateYMod, setTranslateYMod ] = useState(0);
@@ -51,16 +55,22 @@ export const PlayPiece: React.FC<Props> = ({
   useEffect(() => {
     const pieceEl: HTMLDivElement | null = piece.current;
     if (pieceEl !== null) {
-      const onMouseDown = (mouseDownEvent: MouseEvent) => {
+      pieceEl.onmousedown = (mouseDownEvent: MouseEvent) => {
         const onMouseMove = (mouseMoveEvent: MouseEvent) => {
 
           const offsetX = mouseMoveEvent.clientX - mouseDownEvent.clientX;
           const offsetY = mouseMoveEvent.clientY - mouseDownEvent.clientY;
-          if (draggableX && Math.abs(offsetX) <= edgeLength) {
+          if (
+            ((draggableXPos && offsetX > 0) || (draggableXNeg && offsetX < 0)) 
+            && Math.abs(offsetX) <= edgeLength
+          ) {
             pieceEl.style.left = `${offsetX}px`;
           }
 
-          if (draggableY && Math.abs(offsetY) <= edgeLength) {
+          if (
+            ((draggableYPos && offsetY > 0) || (draggableYNeg && offsetY < 0))
+            && Math.abs(offsetY) <= edgeLength
+          ) {
             pieceEl.style.top = `${offsetY}px` 
           }
         }
@@ -69,27 +79,24 @@ export const PlayPiece: React.FC<Props> = ({
           document.removeEventListener("mousemove", onMouseMove);
           const offsetX = mouseUpEvent.clientX - mouseDownEvent.clientX;
           const offsetY = mouseUpEvent.clientY - mouseDownEvent.clientY;
-          if (draggableX) {
+          if ((draggableXPos && offsetX > 0) || (draggableXNeg && offsetX < 0))  {
             const stepsTaken = Math.round(offsetX / edgeLength);
             const newXMod = stepsTaken === 0 ? 0 : stepsTaken <= -1 ? -1 : 1;
             setTranslateXMod(newXMod + translateXMod);
           }
 
-          if (draggableY) {
+          if ((draggableYPos && offsetY > 0) || (draggableYNeg && offsetY < 0)) {
             const stepsTaken = Math.round(offsetY / edgeLength);
             const newYMod = stepsTaken >= 1 ? 1 : stepsTaken <= -1 ? -1 : 0;
             setTranslateYMod(newYMod + translateYMod);
           }
           // Cleanup
           pieceEl.style.transition = "transform .2s, left .2s, top .2s";
-
           setTimeout(() => pieceEl.style.transition = "transform .2s", 500);
           pieceEl.style.top = "0";
           pieceEl.style.left = "0";
         }, { once: true });
       }
-      
-      pieceEl.onmousedown = onMouseDown;
     }
   });
 
