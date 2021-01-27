@@ -52,12 +52,12 @@ export const PlayPiece: React.FC<Props> = ({
 }) => {
   const { onPush, subscribers } = useContext(PushContext);
 
-  const shareXAxis = coordinates.y === emptyCoordinates.y;
-  const shareYAxis = coordinates.x === emptyCoordinates.x;
-  const draggableXPos = coordinates.x < emptyCoordinates.x && shareXAxis;
-  const draggableXNeg = coordinates.x > emptyCoordinates.x && shareXAxis;
-  const draggableYPos = coordinates.y < emptyCoordinates.y && shareYAxis;
-  const draggableYNeg = coordinates.y > emptyCoordinates.y && shareYAxis;
+  const shareXAxisWithEmpty = coordinates.y === emptyCoordinates.y;
+  const shareYAxisWithEmpty= coordinates.x === emptyCoordinates.x;
+  const draggableXPos = coordinates.x < emptyCoordinates.x && shareXAxisWithEmpty;
+  const draggableXNeg = coordinates.x > emptyCoordinates.x && shareXAxisWithEmpty;
+  const draggableYPos = coordinates.y < emptyCoordinates.y && shareYAxisWithEmpty;
+  const draggableYNeg = coordinates.y > emptyCoordinates.y && shareYAxisWithEmpty;
 
   const pieceStyle: CSSProperties = {
     position: "absolute",
@@ -84,12 +84,16 @@ export const PlayPiece: React.FC<Props> = ({
     const pieceEl: HTMLDivElement | null = piece.current;
     if (pieceEl !== null) {
       const onMouseDown = pieceEl.onmousedown = (mouseDownEvent: MouseEvent | TouchEvent) => {
+        const isTouchInteraction = mouseDownEvent instanceof TouchEvent;
+        // prevent the MouseEvent handlers if we only need touch
+        if (isTouchInteraction) {
+          mouseDownEvent.preventDefault();
+        }
         const theMainEvent = mouseDownEvent.currentTarget === pieceEl;
         if (theMainEvent) {
           onPush(mouseDownEvent, coordinates);
         }
         const onMouseMove = (mouseMoveEvent: MouseEvent | TouchEvent) => {
-
           const offsetX = getClientX(mouseMoveEvent) - getClientX(mouseDownEvent);
           const offsetY = getClientY(mouseMoveEvent) - getClientY(mouseDownEvent);
           if (
@@ -109,8 +113,11 @@ export const PlayPiece: React.FC<Props> = ({
         const onTouchMove = function(this: Document, event: TouchEvent) { onMouseMove(event); }
 
         const onMouseUp = (mouseUpEvent: MouseEvent | TouchEvent) => {
-          document.removeEventListener("mousemove", onMouseMove);
-          document.removeEventListener("touchmove", onTouchMove);
+          if (isTouchInteraction) {
+            document.removeEventListener("touchmove", onTouchMove);
+          } else {
+            document.removeEventListener("mousemove", onMouseMove);
+          }
           const offsetX = getClientX(mouseUpEvent) - getClientX(mouseDownEvent);
           const offsetY = getClientY(mouseUpEvent) - getClientY(mouseDownEvent);
           if ((draggableXPos && offsetX > 0) || (draggableXNeg && offsetX < 0))  {
@@ -128,25 +135,28 @@ export const PlayPiece: React.FC<Props> = ({
           pieceEl.style.top = "0";
           pieceEl.style.left = "0";
         }
-        document.addEventListener("mousemove", onMouseMove);
-        document.addEventListener("touchmove", onTouchMove);
-        document.addEventListener("mouseup", onMouseUp, { once: true });
-        document.addEventListener("touchend", event => onMouseUp(event), { once: true });
+        if (isTouchInteraction) {
+          document.addEventListener("touchmove", onTouchMove);
+          document.addEventListener("touchend", onMouseUp, { once: true });
+        } else {
+          document.addEventListener("mousemove", onMouseMove);
+          document.addEventListener("mouseup", onMouseUp, { once: true });
+        }
       };
 
       pieceEl.ontouchstart = function(this: GlobalEventHandlers, event: TouchEvent): void {
         onMouseDown(event);
-      }
+      };
 
       subscribers[id] = (event: MouseEvent, { x, y }: Coordinates) => {
         if (!(coordinates.x === x && coordinates.y === y)) {
           const shareYAxisWithPusher = x === coordinates.x;
           const shareXAxisWithPusher = y === coordinates.y;
           if (
-               (shareYAxisWithPusher && shareYAxis && (emptyCoordinates.y > coordinates.y && y < coordinates.y))
-            || (shareYAxisWithPusher && shareYAxis && (emptyCoordinates.y < coordinates.y && y > coordinates.y))
-            || (shareXAxisWithPusher && shareXAxis && (emptyCoordinates.x > coordinates.x && x < coordinates.x))
-            || (shareXAxisWithPusher && shareXAxis && (emptyCoordinates.x < coordinates.x && x > coordinates.x))
+               (shareYAxisWithPusher && shareYAxisWithEmpty && (emptyCoordinates.y > coordinates.y && y < coordinates.y))
+            || (shareYAxisWithPusher && shareYAxisWithEmpty && (emptyCoordinates.y < coordinates.y && y > coordinates.y))
+            || (shareXAxisWithPusher && shareXAxisWithEmpty && (emptyCoordinates.x > coordinates.x && x < coordinates.x))
+            || (shareXAxisWithPusher && shareXAxisWithEmpty && (emptyCoordinates.x < coordinates.x && x > coordinates.x))
           ) {
             onMouseDown(event);
           }
@@ -155,9 +165,9 @@ export const PlayPiece: React.FC<Props> = ({
     }
   });
 
-  return <div ref={piece} style={pieceStyle}>
+  return (<div ref={piece} style={pieceStyle}>
     <strong style={textStyle}>
       {id}
     </strong>
-  </div>;
+  </div>);
 }
